@@ -1,0 +1,121 @@
+<?php
+/**
+ * @file
+ * Module file SMS verification of Onverify.com service.
+ *
+ * @link http://www.onverify.com/a/api/w/sms
+ */
+
+define('IDEVELS_ONVERIFY_SMS_AUTH_ERR', "2");
+define('IDEVELS_ONVERIFY_SMS_BALANCE_ERR', "3");
+define('IDEVELS_ONVERIFY_SMS_NUMBER_ERR', "4");
+define('IDEVELS_ONVERIFY_SMS_IP_RESTRICTION', "6");
+define('IDEVELS_ONVERIFY_SMS_DUPLICATE_VID', "7");
+define('IDEVELS_ONVERIFY_SMS_QUEUED_MIN', "100");
+
+/**
+ * Create url for request to onverify service.
+ *
+ * @param array $params
+ *   Array with parameters.
+ *
+ * @return string
+ *   Url for request.
+ */
+function idevels_onverify_sms_get_link($params) {
+  return idevels_onverify_make_url('sms.php', $params);
+}
+
+/**
+ * Send SMS.
+ *
+ * @param mixed $request
+ *   Array with parameters or url string.
+ *
+ * @return int
+ *   Status of SMS request.
+ */
+function idevels_onverify_sms_send($request) {
+  if (is_array($request)) {
+    $request = idevels_onverify_sms_get_link($request);
+  }
+  return idevels_onverify_sms_responce_check(file($request));
+}
+
+/**
+ * Report handling of service responce.
+ *
+ * @param array $responce
+ *   Responce of request to the onverify service.
+ *
+ * @return int
+ *   Status of SMS request.
+ */
+function idevels_onverify_sms_responce_check($responce) {
+  $status = &$responce[0];
+  $msgs = [
+    IDEVELS_ONVERIFY_SMS_AUTH_ERR => [
+      't' => t("username or password of onverify account is wrong"),
+      'e' => WATCHDOG_ERROR,
+    ],
+    IDEVELS_ONVERIFY_SMS_BALANCE_ERR => [
+      't' => t("balance of onverify account is not enough"),
+      'e' => WATCHDOG_ERROR,
+    ],
+    IDEVELS_ONVERIFY_SMS_NUMBER_ERR => [
+      't' => t("number wrong"),
+      'e' => WATCHDOG_DEBUG,
+    ],
+    IDEVELS_ONVERIFY_SMS_IP_RESTRICTION => [
+      't' => t("onverify - ip restriction"),
+      'e' => WATCHDOG_ERROR,
+    ],
+    IDEVELS_ONVERIFY_SMS_DUPLICATE_VID => [
+      't' => t("onverify - duplicate vid"),
+      'e' => WATCHDOG_ERROR,
+    ],
+  ];
+  if ($status > IDEVELS_ONVERIFY_SMS_QUEUED_MIN) {
+    $msgs[$status] = [
+      't' => "sms is queued",
+      'e' => WATCHDOG_DEBUG,
+    ];
+  }
+
+  if (($msgs[$status]['e'] === WATCHDOG_ERROR) ||
+    ($msgs[$status]['e'] === WATCHDOG_DEBUG && idevels_onverify_get_debug_status())
+  ) {
+    watchdog('idevels_onverify_sms', $msgs[$status]['t'], [],
+      $msgs[$status]['e']);
+  }
+
+  return $status;
+}
+
+/**
+ * Preparation function for array with request parameters.
+ *
+ * @param string $message
+ *   Message of SMS.
+ * @param string $number
+ *   Phone number.
+ * @param array $other
+ *   Other parameters of SMS sending.
+ *
+ * @return array
+ *   Array of parameters for SMS sending.
+ */
+function idevels_onverify_sms_make_request_data(
+  $message,
+  $number,
+  $other = []
+) {
+  $result = [
+    'msg' => trim($message),
+    'number' => preg_replace('/\D/', '', $number),
+  ];
+  if (!empty($other) && is_array($other)) {
+    $result = array_merge($result, $other);
+  }
+  return $result;
+}

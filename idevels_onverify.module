@@ -1,0 +1,154 @@
+<?php
+/**
+ * @file
+ * Main file of idevels_onverify module.
+ *
+ * @link http://www.onverify.com/a/api
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function idevels_onverify_menu() {
+  $items['admin/config/services/onverify'] = [
+    'title' => 'Onverify',
+    'description' => 'Basic settings for using the <a href="' . url('http://www.onverify.com/') . '" target="_blank" title="open page onverify.com">Onverify</a> service.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => ['idevels_onverify_form'],
+    'file' => 'idevels_onverify.admin.inc',
+    'access arguments' => ['onverify settings permission'],
+    'access callback' => TRUE,
+  ];
+  return $items;
+}
+
+/**
+ * Implements hook_permission().
+ */
+function idevels_onverify_permission() {
+  return [
+    'onverify settings permission' => [
+      'title' => t('Allow access to change onverify service settings'),
+    ],
+  ];
+}
+
+/**
+ * Get numeric userid value from www.onverify.com.
+ *
+ * @return string
+ *   Numeric string of userid.
+ */
+function idevels_onverify_get_userid() {
+  return variable_get('idevels_onverify_userid', '');
+}
+
+/**
+ * Get numeric apipass value from www.onverify.com.
+ *
+ * @return string
+ *   Numeric string of apipass.
+ */
+function idevels_onverify_get_apipass() {
+  return variable_get('idevels_onverify_apipass', '');
+}
+
+/**
+ * Get numeric apipass value from www.onverify.com.
+ *
+ * @param bool $return_string
+ *   Return string flag.
+ *
+ * @return mixed
+ *   Boolean value or string contains protocol (part of url).
+ */
+function idevels_onverify_use_https($return_string = FALSE) {
+  $https = variable_get('idevels_onverify_https', '0');
+  if ((bool) $return_string) {
+    return ($https) ? 'https://' : 'http://';
+  }
+  else {
+    return $https;
+  }
+}
+
+/**
+ * Flag of enabled debug mode.
+ *
+ * @return bool
+ *   Flag value.
+ */
+function idevels_onverify_get_debug_status() {
+  return variable_get('idevels_onverify_debug_enabled', '0');
+}
+
+/**
+ * Host of Onverify service.
+ *
+ * @return string
+ *   Host string.
+ */
+function _idevels_onverify_get_host() {
+  return 'www.onverify.com/';
+}
+
+/**
+ * Function return base url string.
+ *
+ * @return string
+ *   Url of Onverify service.
+ */
+function _idevels_onverify_get_base_url() {
+  return idevels_onverify_use_https(1) . _idevels_onverify_get_host();
+}
+
+/**
+ * Create basic part of request array with credentials.
+ *
+ * @return array
+ *   Array with userid and apipass parameters.
+ */
+function _idevels_onverify_auth_array() {
+  return [
+    'userid' => idevels_onverify_get_userid(),
+    'apipass' => idevels_onverify_get_apipass(),
+  ];
+}
+
+
+/**
+ * Used by idevels_onverify_make_url().
+ *
+ * Create base url path contain protocol, host, service handler page
+ * and credentials parameters parts.
+ *
+ * @param string $script_file
+ *   Service handler page from onverify service, like 'sms.php','sms2.php', etc.
+ *
+ * @return string
+ *   Base url.
+ *
+ * @see idevels_onverify_make_url()
+ */
+function _idevels_onverify_get_script_path($script_file) {
+  return _idevels_onverify_get_base_url() . trim($script_file) . '?' .
+  http_build_query(_idevels_onverify_auth_array()) . '&';
+}
+
+/**
+ * Create complete url for request to onverify service.
+ *
+ * Use this function for onverify service submodules.
+ *
+ * @param string $script_file
+ *   Service handler page from onverify service, like 'sms.php','sms2.php', etc.
+ * @param array $params
+ *   Parameters for service. Parameters can be different for each
+ *   onverify service.
+ *
+ * @return string
+ *   Return complete url for request to onverify service.
+ */
+function idevels_onverify_make_url($script_file, $params) {
+  return _idevels_onverify_get_script_path($script_file) . http_build_query($params);
+}

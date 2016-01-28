@@ -1,0 +1,5 @@
+name = idevels onverify
+description = Provides functionality for Onverify.com service
+package = InternetDevels
+core = 7.x
+configure = admin/config/services/onverify

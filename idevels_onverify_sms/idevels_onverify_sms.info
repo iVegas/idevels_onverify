@@ -1,0 +1,5 @@
+name = idevels onverify sms
+description = Provides functionality for Onverify.com service (SMS verification)
+package = InternetDevels
+core = 7.x
+dependencies[] = idevels_onverify
