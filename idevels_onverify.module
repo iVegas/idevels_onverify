@@ -40,7 +40,7 @@ function idevels_onverify_permission() {
  *   Numeric string of userid.
  */
 function idevels_onverify_get_userid() {
-  return variable_get('idevels_onverify_userid', '');
+  return variable_get('idevels_onverify_userid', '0001');
 }
 
 /**
@@ -50,7 +50,7 @@ function idevels_onverify_get_userid() {
  *   Numeric string of apipass.
  */
 function idevels_onverify_get_apipass() {
-  return variable_get('idevels_onverify_apipass', '');
+  return variable_get('idevels_onverify_apipass', '0001');
 }
 
 /**
