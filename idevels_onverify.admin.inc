@@ -73,31 +73,3 @@ function idevels_onverify_form_submit($form, &$form_state) {
     (intval($form_state['values']['https']) !== 1) ? 0 : 1);
   variable_set('idevels_onverify_debug_enabled', $form_state['values']['debug']);
 }
-
-/**
- * ID verification function.
- *
- * @param mixed $val
- *   Value to validate.
- *
- * @return bool
- *   Is value required id.
- */
-function _idevels_onverify_is_id($val) {
-  return !empty($val) && is_numeric($val) && ($val > 0);
-}
-
-/**
- * Error handler for inputs with id value.
- *
- * @param string $name
- *   Input name.
- * @param mixed $val
- *   Value to check.
- */
-function _idevels_onverify_check_input_id($name, $val) {
-  if (!_idevels_onverify_is_id($val)) {
-    form_set_error($name,
-      'Value ' . $name . ' must be a numeric positive value');
-  }
-}
